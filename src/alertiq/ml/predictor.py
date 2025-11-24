@@ -10,9 +10,7 @@ import numpy as np
 import pandas as pd
 
 from alertiq.config import Settings
-from alertiq.ml.features import ALL_FEATURES, CATEGORICAL_FEATURES
-
-SEVERITY_ORDER = ["critical", "high", "medium", "low"]
+from alertiq.ml.features import ALL_FEATURES, CATEGORICAL_FEATURES, SEVERITY_ORDER
 
 
 class ModelNotLoadedError(Exception):
@@ -57,7 +55,7 @@ class AlertPredictor:
         self._model_version = settings.model_registry_name
 
     def is_loaded(self) -> bool:
-        return self._severity_model is not None
+        return self._severity_model is not None and self._autoresolve_model is not None
 
     @property
     def model_version(self) -> str:
