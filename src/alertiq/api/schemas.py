@@ -34,6 +34,7 @@ class AlertPredictionResponse(BaseModel):
     id: int
     alert_name: str
     service: str
+    environment: str
     predicted_severity: str
     predicted_category: str | None
     predicted_auto_resolve: bool

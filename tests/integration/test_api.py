@@ -61,3 +61,10 @@ def test_webhook_no_model_503(client):
 def test_incident_missing_required_field(client):
     r = client.post("/incidents/", json={"id": "INC-BAD", "alert_name": "x"})
     assert r.status_code == 422
+
+
+def test_training_start_insufficient_data_422(client):
+    """POST /training/start with empty DB must return 422 (not ImportError)."""
+    r = client.post("/incidents/training/start")
+    assert r.status_code == 422
+    assert "insufficient" in r.json()["detail"].lower() or "need" in r.json()["detail"].lower()

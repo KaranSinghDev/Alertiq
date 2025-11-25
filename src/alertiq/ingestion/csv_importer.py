@@ -97,7 +97,7 @@ def import_pagerduty_csv(csv_content: str, session: Session) -> dict:
         session.add(incident)
         imported += 1
 
-    session.commit()
+    session.flush()
     return {"imported": imported, "skipped_duplicates": skipped_dup, "skipped_invalid": skipped_invalid}
 
 
@@ -133,6 +133,9 @@ def import_generic_csv(csv_content: str, column_map: dict, session: Session) -> 
             skipped_dup += 1
             continue
 
+        raw_rt = get("resolution_time_min")
+        resolution_time_min = float(raw_rt) if raw_rt not in (None, "") else None
+
         incident = Incident(
             id=incident_id,
             alert_name=get("alert_name") or "unknown",
@@ -141,12 +144,12 @@ def import_generic_csv(csv_content: str, column_map: dict, session: Session) -> 
             severity_label=get("severity_label") or "low",
             started_at=started_at,
             resolved_at=_parse_dt(get("resolved_at", "")),
-            resolution_time_min=float(get("resolution_time_min") or 0) or None,
+            resolution_time_min=resolution_time_min,
             auto_resolved=str(get("auto_resolved", "false")).lower() == "true",
             alert_count_in_window=int(get("alert_count_in_window") or 1),
         )
         session.add(incident)
         imported += 1
 
-    session.commit()
+    session.flush()
     return {"imported": imported, "skipped_duplicates": skipped_dup, "skipped_invalid": skipped_invalid}

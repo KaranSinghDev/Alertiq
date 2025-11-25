@@ -2,9 +2,9 @@
 Integration tests for the webhook prediction route.
 AlertPredictor is mocked so no MLflow server is required.
 """
+import pytest
 from datetime import datetime
 from unittest.mock import patch, MagicMock
-import pytest
 
 
 def _mock_predictor(severity="high", auto_resolve=False, confidence=0.82):
@@ -38,14 +38,15 @@ def test_webhook_returns_201_with_prediction(client):
     assert body["predicted_auto_resolve"] is False
     assert body["severity_confidence"] == pytest.approx(0.82)
     assert body["model_version"] == "v-test"
+    assert body["environment"] == "prod"
 
 
-def test_webhook_stores_prediction_in_db(client, db_session):
+def test_webhook_stores_prediction_in_db(client, db):
     with patch("alertiq.api.routes.webhook.AlertPredictor.get", return_value=_mock_predictor()):
         resp = client.post("/webhook/alert", json=WEBHOOK_PAYLOAD)
     assert resp.status_code == 201
     from alertiq.db.models import AlertPrediction
-    pred = db_session.get(AlertPrediction, resp.json()["id"])
+    pred = db.get(AlertPrediction, resp.json()["id"])
     assert pred is not None
     assert pred.predicted_severity == "high"
 
