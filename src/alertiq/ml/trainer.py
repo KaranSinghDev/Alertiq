@@ -15,10 +15,7 @@ from sqlalchemy.orm import Session
 
 from alertiq.config import Settings
 from alertiq.ml.data import get_labelled_incidents
-from alertiq.ml.features import build_feature_dataframe, CATEGORICAL_FEATURES
-
-# Canonical severity order — index used by LightGBM multiclass
-SEVERITY_ORDER = ["critical", "high", "medium", "low"]
+from alertiq.ml.features import build_feature_dataframe, CATEGORICAL_FEATURES, SEVERITY_ORDER
 
 LGBM_SEVERITY_PARAMS = {
     "objective": "multiclass",
@@ -45,8 +42,17 @@ LGBM_AUTORESOLVE_PARAMS = {
 
 
 def _encode_severity(labels: list[str]) -> np.ndarray:
+    import logging
     mapping = {s: i for i, s in enumerate(SEVERITY_ORDER)}
-    return np.array([mapping.get(lbl, 3) for lbl in labels])  # unknown → low
+    encoded = []
+    for lbl in labels:
+        if lbl not in mapping:
+            logging.getLogger(__name__).warning(
+                "Unknown severity label %r — mapped to 'low'. "
+                "Expected one of %s.", lbl, SEVERITY_ORDER
+            )
+        encoded.append(mapping.get(lbl, 3))
+    return np.array(encoded)
 
 
 def _make_version() -> str:

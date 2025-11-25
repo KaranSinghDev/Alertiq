@@ -5,6 +5,9 @@ Pure functions — no IO, fully unit-testable.
 from datetime import datetime
 import pandas as pd
 
+# Canonical severity order — index position used by LightGBM multiclass encoding
+SEVERITY_ORDER = ["critical", "high", "medium", "low"]
+
 CATEGORICAL_FEATURES = ["alert_name", "service", "environment"]
 NUMERIC_FEATURES = [
     "alert_count_in_window", "hour_of_day", "day_of_week",
