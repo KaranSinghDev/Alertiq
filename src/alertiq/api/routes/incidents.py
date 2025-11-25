@@ -55,7 +55,7 @@ def start_training(
     Returns the completed TrainingRun record.
     """
     import uuid
-    from alertiq.ml.trainer import train, InsufficientDataError as _IDE
+    from alertiq.ml.trainer import train
     from alertiq.ml.data import InsufficientDataError
 
     run = TrainingRun(
