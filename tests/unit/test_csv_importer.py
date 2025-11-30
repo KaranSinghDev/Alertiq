@@ -17,40 +17,40 @@ ID,Title,Priority
 """
 
 
-def test_pagerduty_import_happy_path(db_session):
-    result = import_pagerduty_csv(VALID_PD_CSV, db_session)
+def test_pagerduty_import_happy_path(db):
+    result = import_pagerduty_csv(VALID_PD_CSV, db)
     assert result["imported"] == 3
     assert result["skipped_duplicates"] == 0
     assert result["skipped_invalid"] == 0
 
 
-def test_pagerduty_deduplication(db_session):
-    import_pagerduty_csv(VALID_PD_CSV, db_session)
-    result2 = import_pagerduty_csv(VALID_PD_CSV, db_session)
+def test_pagerduty_deduplication(db):
+    import_pagerduty_csv(VALID_PD_CSV, db)
+    result2 = import_pagerduty_csv(VALID_PD_CSV, db)
     assert result2["imported"] == 0
     assert result2["skipped_duplicates"] == 3
 
 
-def test_pagerduty_severity_mapping(db_session):
+def test_pagerduty_severity_mapping(db):
     from alertiq.db.models import Incident
-    import_pagerduty_csv(VALID_PD_CSV, db_session)
-    inc = db_session.get(Incident, "pd-101")
-    assert inc.severity_label == "critical"      # urgency=high → critical
+    import_pagerduty_csv(VALID_PD_CSV, db)
+    inc = db.get(Incident, "pd-101")
+    assert inc.severity_label == "critical"
 
 
-def test_pagerduty_auto_resolve_within_5min(db_session):
+def test_pagerduty_auto_resolve_within_5min(db):
     from alertiq.db.models import Incident
-    import_pagerduty_csv(VALID_PD_CSV, db_session)
-    inc = db_session.get(Incident, "pd-101")
-    assert inc.auto_resolved is True     # resolved in 3 min
+    import_pagerduty_csv(VALID_PD_CSV, db)
+    inc = db.get(Incident, "pd-101")
+    assert inc.auto_resolved is True
 
 
-def test_pagerduty_missing_columns_raises(db_session):
+def test_pagerduty_missing_columns_raises(db):
     with pytest.raises(ValueError, match="missing required columns"):
-        import_pagerduty_csv(MISSING_COL_CSV, db_session)
+        import_pagerduty_csv(MISSING_COL_CSV, db)
 
 
-def test_generic_import_with_column_map(db_session):
+def test_generic_import_with_column_map(db):
     csv_content = "my_id,my_name,my_svc,my_env,sev,ts\n" \
                   "G-001,DiskFull,storage,prod,critical,2024-03-01T12:00:00Z\n"
     column_map = {
@@ -61,5 +61,5 @@ def test_generic_import_with_column_map(db_session):
         "severity_label": "sev",
         "started_at": "ts",
     }
-    result = import_generic_csv(csv_content, column_map, db_session)
+    result = import_generic_csv(csv_content, column_map, db)
     assert result["imported"] == 1
